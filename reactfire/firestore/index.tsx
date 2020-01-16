@@ -1,30 +1,7 @@
 import { firestore } from 'firebase/app';
-import {
-  collectionData,
-  doc,
-  docData,
-  fromCollectionRef
-} from 'rxfire/firestore';
-import { preloadFirestore, ReactFireOptions, useObservable } from '..';
-import { preloadObservable } from '../useObservable';
-
-// starts a request for a firestore doc.
-// imports the firestore SDK automatically
-// if it hasn't been imported yet.
-//
-// there's a decent chance this gets called before the Firestore SDK
-// has been imported, so it takes a refProvider instead of a ref
-export function preloadFirestoreDoc(
-  refProvider: (
-    firestore: firebase.firestore.Firestore
-  ) => firestore.DocumentReference,
-  firebaseApp: firebase.app.App
-) {
-  return preloadFirestore(firebaseApp).then(firestore => {
-    const ref = refProvider(firestore() as firebase.firestore.Firestore);
-    return preloadObservable(doc(ref), ref.path);
-  });
-}
+import { fromDocRef, fromCollectionRef } from 'rxfire/firestore';
+import { ReactFireOptions, useObservable } from '..';
+import { skipWhile } from 'rxjs/operators';
 
 /**
  * Suscribe to Firestore Document changes
@@ -32,32 +9,14 @@ export function preloadFirestoreDoc(
  * @param ref - Reference to the document you want to listen to
  * @param options
  */
-export function useFirestoreDoc<T = unknown>(
-  ref: firestore.DocumentReference,
-  options?: ReactFireOptions<T>
-): T extends {} ? T : firestore.DocumentSnapshot {
-  return useObservable(
-    doc(ref),
-    'firestore doc: ' + ref.path,
-    options ? options.startWithValue : undefined
-  );
-}
+export function useFirestoreDoc(
+  ref: firestore.DocumentReference
+): firestore.DocumentSnapshot {
+  const queryId = 'firestore doc: ' + ref.path;
 
-/**
- * Suscribe to Firestore Document changes
- *
- * @param ref - Reference to the document you want to listen to
- * @param options
- */
-export function useFirestoreDocData<T = unknown>(
-  ref: firestore.DocumentReference,
-  options?: ReactFireOptions<T>
-): T {
-  return useObservable(
-    docData(ref, checkIdField(options)),
-    'firestore docdata: ' + ref.path,
-    checkStartWithValue(options)
-  );
+  const observable = fromDocRef(ref);
+
+  return useObservable(observable, queryId);
 }
 
 /**
@@ -66,16 +25,26 @@ export function useFirestoreDocData<T = unknown>(
  * @param ref - Reference to the collection you want to listen to
  * @param options
  */
-export function useFirestoreCollection<T = { [key: string]: unknown }>(
+export function useFirestoreCollection(
   query: firestore.Query,
-  options?: ReactFireOptions<T[]>
-): T extends {} ? T[] : firestore.QuerySnapshot {
+  options?: ReactFireOptions
+): firestore.QuerySnapshot {
+  const { skipCache = false } = options || {};
+
   const queryId = getHashFromFirestoreQuery(query);
 
+  const observable = fromCollectionRef(
+    query,
+    options && {
+      includeMetadataChanges: skipCache
+    }
+  );
+
   return useObservable(
-    fromCollectionRef(query, checkIdField(options)),
-    queryId,
-    options ? options.startWithValue : undefined
+    skipCache
+      ? observable.pipe(skipWhile(snap => snap.metadata.fromCache))
+      : observable,
+    queryId
   );
 }
 
@@ -92,35 +61,4 @@ interface _QueryWithId extends firestore.Query {
 function getHashFromFirestoreQuery(query: firestore.Query) {
   const hash = (query as _QueryWithId)._query.canonicalId();
   return `firestore: ${hash}`;
-}
-
-/**
- * Subscribe to a Firestore collection and unwrap the snapshot.
- *
- * @param ref - Reference to the collection you want to listen to
- * @param options
- */
-export function useFirestoreCollectionData<T = { [key: string]: unknown }>(
-  query: firestore.Query,
-  options?: ReactFireOptions<T[]>
-): T[] {
-  const queryId = getHashFromFirestoreQuery(query);
-
-  return useObservable(
-    collectionData(query, checkIdField(options)),
-    queryId,
-    checkStartWithValue(options)
-  );
-}
-
-function checkOptions(options: ReactFireOptions, field: string) {
-  return options ? options[field] : undefined;
-}
-
-function checkStartWithValue(options: ReactFireOptions) {
-  return checkOptions(options, 'startWithValue');
-}
-
-function checkIdField(options: ReactFireOptions) {
-  return checkOptions(options, 'idField');
 }

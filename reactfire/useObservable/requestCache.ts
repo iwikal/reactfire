@@ -78,3 +78,32 @@ export class ObservablePromiseCache {
     this.activeRequests.delete(requestId);
   }
 }
+
+const requestCache = new ObservablePromiseCache();
+
+export function preloadRequest(
+  getPromise,
+  requestId: string
+): { requestId: string; request: ActiveRequest } {
+  const request = requestCache.createDedupedRequest(getPromise, requestId);
+
+  return {
+    requestId: requestId,
+    request
+  };
+}
+
+export function usePreloadedRequest(preloadResult: { requestId: string }) {
+  const request = requestCache.getRequest(preloadResult.requestId);
+
+  // Suspend if we're not ready yet
+  if (!request.isComplete) {
+    throw request.promise;
+  }
+
+  if (request.error) {
+    throw request.error;
+  }
+
+  return request.value;
+}

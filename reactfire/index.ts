@@ -1,6 +1,5 @@
-export interface ReactFireOptions<T = unknown> {
-  startWithValue?: T;
-  idField?: string;
+export interface ReactFireOptions {
+  skipCache?: boolean;
 }
 
 export * from './auth';
