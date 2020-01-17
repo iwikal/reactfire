@@ -1,13 +1,10 @@
-import { first, take } from 'rxjs/operators';
-import { Observable } from 'rxjs';
-
 export class ActiveRequest {
   promise: Promise<any>;
   isComplete: boolean;
   value: any;
-  error: Error;
+  error: any;
 
-  constructor(promise) {
+  constructor(promise: Promise<any>) {
     this.isComplete = false;
     this.promise = promise
       .then(result => {
@@ -20,12 +17,12 @@ export class ActiveRequest {
       });
   }
 
-  setValue = value => {
+  setValue = (value: any) => {
     this.value = value;
     this.isComplete = true;
   };
 
-  setError = err => {
+  setError = (err: any) => {
     this.error = err;
     this.isComplete = true;
   };
@@ -45,7 +42,7 @@ export class ObservablePromiseCache {
     this.activeRequests = new Map();
   }
 
-  getRequest(requestId) {
+  getRequest(requestId: string) {
     const request = this.activeRequests.get(requestId);
     if (request === undefined) {
       throw new Error(`No request with ID "${requestId}" exists`);
@@ -53,7 +50,7 @@ export class ObservablePromiseCache {
     return request;
   }
 
-  createRequest(promise: Promise<any>, requestId): ActiveRequest {
+  createRequest(promise: Promise<any>, requestId: string): ActiveRequest {
     if (this.activeRequests.get(requestId) !== undefined) {
       throw new Error(`request "${requestId}" is already in use.`);
     }
@@ -64,7 +61,7 @@ export class ObservablePromiseCache {
     return request;
   }
 
-  createDedupedRequest(getPromise: () => Promise<any>, requestId) {
+  createDedupedRequest(getPromise: () => Promise<any>, requestId: string) {
     let request = this.activeRequests.get(requestId);
 
     if (request === undefined) {
@@ -82,7 +79,7 @@ export class ObservablePromiseCache {
 const requestCache = new ObservablePromiseCache();
 
 export function preloadRequest(
-  getPromise,
+  getPromise: () => Promise<any>,
   requestId: string
 ): { requestId: string; request: ActiveRequest } {
   const request = requestCache.createDedupedRequest(getPromise, requestId);

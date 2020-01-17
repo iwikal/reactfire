@@ -16,7 +16,7 @@ function fetchSDK(sdk: SDK, firebaseApp: firebase.app.App) {
     throw new Error('Firebase app was not provided');
   }
 
-  let sdkPromise;
+  let sdkPromise: any;
 
   if (firebaseApp[sdk]) {
     sdkPromise = Promise.resolve(firebaseApp[sdk]);
@@ -72,11 +72,11 @@ function fetchSDK(sdk: SDK, firebaseApp: firebase.app.App) {
 }
 
 function useSDK(sdk: SDK, firebaseApp?: firebase.app.App) {
-  firebaseApp = firebaseApp || useFirebaseApp();
+  const app = firebaseApp || useFirebaseApp();
 
   // use the request cache so we don't issue multiple fetches for the sdk
   const result = preloadRequest(
-    () => fetchSDK(sdk, firebaseApp),
+    () => fetchSDK(sdk, app),
     `firebase-sdk-${sdk}`
   );
 

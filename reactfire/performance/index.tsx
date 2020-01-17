@@ -34,11 +34,11 @@ export function SuspenseWithPerf({
   fallback,
   firePerf
 }: SuspensePerfProps): JSX.Element {
-  firePerf = firePerf || getPerfFromContext();
+  const perf = firePerf || getPerfFromContext();
 
   const Fallback = () => {
     React.useLayoutEffect(() => {
-      const trace = firePerf.trace(traceId);
+      const trace = perf.trace(traceId);
       trace.start();
 
       return () => {

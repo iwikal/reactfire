@@ -9,19 +9,36 @@ const FirebaseAppContext = React.createContext<
   FirebaseAppContextValue | undefined
 >(undefined);
 
-export function FirebaseAppProvider(props) {
-  const { firebaseConfig, initPerformance } = props;
-  let { firebaseApp } = props;
+type BaseProps = {
+  initPerformance?: boolean
+}
 
-  firebaseApp =
-    firebaseApp ||
+type InitProps = BaseProps & {
+  firebaseConfig: Object
+  firebaseApp: undefined
+}
+
+type NoInitProps = BaseProps & {
+  firebaseConfig: undefined
+  firebaseApp: firebase.app.App
+}
+
+export type FirebaseAppProviderProps = React.PropsWithChildren<
+  InitProps | NoInitProps
+>;
+
+export function FirebaseAppProvider(props: FirebaseAppProviderProps) {
+  const { initPerformance } = props;
+
+  const firebaseApp =
+    props.firebaseApp ||
     React.useMemo(() => {
       if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(props.firebaseConfig);
       }
 
-      return firebase;
-    }, [firebaseConfig]);
+      return firebase.app();
+    }, [props.firebaseConfig]);
 
   React.useMemo(() => {
     if (initPerformance === true && !!firebase.apps.length) {

@@ -10,13 +10,21 @@ import { skipWhile } from 'rxjs/operators';
  * @param options
  */
 export function useFirestoreDoc(
-  ref: firestore.DocumentReference
+  ref: firestore.DocumentReference,
+  options?: ReactFireOptions
 ): Resource<firestore.DocumentSnapshot> {
+  const { skipCache = false } = options || {};
+
   const queryId = 'firestore doc: ' + ref.path;
 
-  const observable = fromDocRef(ref);
+  const observable = fromDocRef(ref, { includeMetadataChanges: true });
 
-  return useObservable(observable, queryId);
+  return useObservable(
+    skipCache
+      ? observable.pipe(skipWhile(snap => snap.metadata.fromCache))
+      : observable,
+    queryId + getHashFromOptions(options)
+  );
 }
 
 /**
@@ -44,7 +52,7 @@ export function useFirestoreCollection(
     skipCache
       ? observable.pipe(skipWhile(snap => snap.metadata.fromCache))
       : observable,
-    queryId + `|skipCache:${skipCache}`
+    queryId + getHashFromOptions(options)
   );
 }
 
@@ -61,4 +69,9 @@ interface _QueryWithId extends firestore.Query {
 function getHashFromFirestoreQuery(query: firestore.Query) {
   const hash = (query as _QueryWithId)._query.canonicalId();
   return `firestore: ${hash}`;
+}
+
+function getHashFromOptions(options?: ReactFireOptions): string {
+  const { skipCache = false } = options || {};
+  return `|skipCache:${skipCache}`;
 }

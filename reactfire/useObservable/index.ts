@@ -25,10 +25,6 @@ export function useObservable<T>(
   observableId: string
 ): Resource<T> {
   return resourcify(() => {
-    if (!observableId) {
-      throw new Error('cannot call useObservable without an observableId');
-    }
-
     const entry = preloadObservable(observable, observableId);
 
     const [, setValue] = React.useState<T>();

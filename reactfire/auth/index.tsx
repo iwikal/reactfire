@@ -11,7 +11,7 @@ import {
 import { from } from 'rxjs';
 
 export function preloadUser(firebaseApp: firebase.app.App) {
-  return preloadAuth(firebaseApp).then(auth => {
+  return preloadAuth(firebaseApp).then((auth: any) => {
     const result = preloadObservable(
       user(auth() as firebase.auth.Auth),
       'auth: user'
@@ -26,9 +26,9 @@ export function preloadUser(firebaseApp: firebase.app.App) {
  * @param auth - the [firebase.auth](https://firebase.google.com/docs/reference/js/firebase.auth) object
  */
 export function useUser(auth?: auth.Auth): Resource<User> {
-  auth = auth || useAuth()();
+  const definedAuth = auth || useAuth()();
 
-  return useObservable(user(auth), 'auth: user');
+  return useObservable(user(definedAuth), 'auth: user');
 }
 
 export function useIdTokenResult(
@@ -44,23 +44,32 @@ export function useIdTokenResult(
   return useObservable(idToken$, `${user.uid}-claims`);
 }
 
+interface Claims {
+  [key: string]: any
+}
+
 export interface AuthCheckProps {
   auth?: auth.Auth;
   fallback: React.ReactNode;
   children: React.ReactNode;
-  requiredClaims?: Object;
+  requiredClaims?: Claims
 }
 
 export interface ClaimsCheckProps {
   user: User;
   fallback: React.ReactNode;
   children: React.ReactNode;
-  requiredClaims?: Object;
+  requiredClaims?: Claims
 }
 
-export function ClaimsCheck({ user, fallback, children, requiredClaims }) {
+export function ClaimsCheck({
+  user,
+  fallback,
+  children,
+  requiredClaims = {}
+}: ClaimsCheckProps) {
   const { claims } = useIdTokenResult(user, false).read();
-  const missingClaims = {};
+  const missingClaims: Claims = {};
 
   Object.keys(requiredClaims).forEach(claim => {
     if (requiredClaims[claim] !== claims[claim]) {
@@ -84,7 +93,7 @@ export function AuthCheck({
   children,
   requiredClaims
 }: AuthCheckProps): JSX.Element {
-  const user = useUser(auth);
+  const user = useUser(auth).read();
 
   if (user) {
     return requiredClaims ? (
