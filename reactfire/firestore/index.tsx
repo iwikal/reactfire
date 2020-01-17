@@ -1,6 +1,6 @@
 import { firestore } from 'firebase/app';
 import { fromDocRef, fromCollectionRef } from 'rxfire/firestore';
-import { ReactFireOptions, useObservable } from '..';
+import { Resource, ReactFireOptions, useObservable } from '..';
 import { skipWhile } from 'rxjs/operators';
 
 /**
@@ -11,7 +11,7 @@ import { skipWhile } from 'rxjs/operators';
  */
 export function useFirestoreDoc(
   ref: firestore.DocumentReference
-): firestore.DocumentSnapshot {
+): Resource<firestore.DocumentSnapshot> {
   const queryId = 'firestore doc: ' + ref.path;
 
   const observable = fromDocRef(ref);
@@ -28,7 +28,7 @@ export function useFirestoreDoc(
 export function useFirestoreCollection(
   query: firestore.Query,
   options?: ReactFireOptions
-): firestore.QuerySnapshot {
+): Resource<firestore.QuerySnapshot> {
   const { skipCache = false } = options || {};
 
   const queryId = getHashFromFirestoreQuery(query);

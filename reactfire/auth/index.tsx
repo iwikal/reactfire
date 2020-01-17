@@ -1,7 +1,13 @@
 import { auth, User } from 'firebase/app';
 import * as React from 'react';
 import { user } from 'rxfire/auth';
-import { preloadAuth, preloadObservable, useAuth, useObservable } from '..';
+import {
+  Resource,
+  preloadAuth,
+  preloadObservable,
+  useAuth,
+  useObservable
+} from '..';
 import { from } from 'rxjs';
 
 export function preloadUser(firebaseApp: firebase.app.App) {
@@ -19,13 +25,16 @@ export function preloadUser(firebaseApp: firebase.app.App) {
  *
  * @param auth - the [firebase.auth](https://firebase.google.com/docs/reference/js/firebase.auth) object
  */
-export function useUser(auth?: auth.Auth): User {
+export function useUser(auth?: auth.Auth): Resource<User> {
   auth = auth || useAuth()();
 
   return useObservable(user(auth), 'auth: user');
 }
 
-export function useIdTokenResult(user: User, forceRefresh: boolean = false) {
+export function useIdTokenResult(
+  user: User,
+  forceRefresh: boolean = false
+): Resource<auth.IdTokenResult> {
   if (!user) {
     throw new Error('you must provide a user');
   }
@@ -50,7 +59,7 @@ export interface ClaimsCheckProps {
 }
 
 export function ClaimsCheck({ user, fallback, children, requiredClaims }) {
-  const { claims } = useIdTokenResult(user, false);
+  const { claims } = useIdTokenResult(user, false).read();
   const missingClaims = {};
 
   Object.keys(requiredClaims).forEach(claim => {

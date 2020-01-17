@@ -9,3 +9,4 @@ export * from './firestore';
 export * from './performance';
 export * from './storage';
 export * from './useObservable';
+export * from './resource';

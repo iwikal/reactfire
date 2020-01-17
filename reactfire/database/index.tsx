@@ -1,13 +1,15 @@
 import { database } from 'firebase/app';
 import { list, object, QueryChange } from 'rxfire/database';
-import { useObservable } from '..';
+import { Resource, useObservable } from '..';
 
 /**
  * Subscribe to a Realtime Database object
  *
  * @param ref - Reference to the DB object you want to listen to
  */
-export function useDatabaseObject(ref: database.Reference): QueryChange {
+export function useDatabaseObject(
+  ref: database.Reference
+): Resource<QueryChange> {
   return useObservable(object(ref), `RTDB: ${ref.toString()}`);
 }
 
@@ -25,7 +27,7 @@ interface _QueryWithId extends database.Query {
  */
 export function useDatabaseList(
   ref: database.Reference | database.Query
-): QueryChange[] {
+): Resource<QueryChange[]> {
   const queryId = (ref as _QueryWithId).queryIdentifier();
   const hash = `RTDB: ${ref.toString()}|${queryId}`;
 

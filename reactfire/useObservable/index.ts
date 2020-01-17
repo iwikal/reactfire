@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Observable } from 'rxjs';
 import { CacheEntry, ObservableCache } from './observableCache';
+import { Resource, resourcify } from '..';
 
 export { preloadRequest, usePreloadedRequest } from './requestCache';
 
@@ -22,25 +23,27 @@ export function preloadObservable<T>(
 export function useObservable<T>(
   observable: Observable<T>,
   observableId: string
-): T {
-  if (!observableId) {
-    throw new Error('cannot call useObservable without an observableId');
-  }
+): Resource<T> {
+  return resourcify(() => {
+    if (!observableId) {
+      throw new Error('cannot call useObservable without an observableId');
+    }
 
-  const entry = preloadObservable(observable, observableId);
+    const entry = preloadObservable(observable, observableId);
 
-  const [, setValue] = React.useState<T>();
+    const [, setValue] = React.useState<T>();
 
-  React.useEffect(() => {
-    const subscription = entry.observable.subscribe(
-      snap => setValue(snap),
-      err => {
-        throw err;
-      }
-    );
+    React.useEffect(() => {
+      const subscription = entry.observable.subscribe(
+        snap => setValue(snap),
+        err => {
+          throw err;
+        }
+      );
 
-    return () => subscription.unsubscribe();
-  }, [observableId]);
+      return () => subscription.unsubscribe();
+    }, [observableId]);
 
-  return entry.read();
+    return entry.read();
+  })();
 }

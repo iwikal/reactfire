@@ -2,7 +2,7 @@ import * as React from 'react';
 import { storage } from 'firebase/app';
 import { getDownloadURL } from 'rxfire/storage';
 import { Observable } from 'rxjs';
-import { useObservable, useFirebaseApp } from '..';
+import { Resource, useObservable, useFirebaseApp } from '..';
 
 /**
  * modified version of rxFire's _fromTask
@@ -30,7 +30,7 @@ function _fromTask(task: storage.UploadTask) {
 export function useStorageTask(
   task: storage.UploadTask,
   ref: storage.Reference
-): storage.UploadTaskSnapshot {
+): Resource<storage.UploadTaskSnapshot> {
   return useObservable(_fromTask(task), 'storage upload: ' + ref.toString());
 }
 
@@ -39,7 +39,9 @@ export function useStorageTask(
  *
  * @param ref - reference to the blob you want to download
  */
-export function useStorageDownloadURL(ref: storage.Reference): string {
+export function useStorageDownloadURL(
+  ref: storage.Reference
+): Resource<string> {
   return useObservable(
     getDownloadURL(ref),
     'storage download:' + ref.toString()
@@ -63,5 +65,5 @@ export function StorageImage(
   storage = storage || useFirebaseApp().storage();
 
   const imgSrc = useStorageDownloadURL(storage.ref(storagePath));
-  return <img src={imgSrc} {...imgProps} />;
+  return <img src={imgSrc.read()} {...imgProps} />;
 }
