@@ -2,7 +2,7 @@ import * as React from 'react';
 import { storage } from 'firebase/app';
 import { getDownloadURL } from 'rxfire/storage';
 import { Observable } from 'rxjs';
-import { ReactFireOptions, useObservable, useFirebaseApp } from '..';
+import { useObservable, useFirebaseApp } from '..';
 
 /**
  * modified version of rxFire's _fromTask
@@ -14,11 +14,7 @@ function _fromTask(task: storage.UploadTask) {
     const progress = (snap: storage.UploadTaskSnapshot) => {
       return subscriber.next(snap);
     };
-    const error = e => subscriber.error(e);
-    const complete = () => {
-      return subscriber.complete();
-    };
-    task.on('state_changed', progress, error, complete);
+    task.on('state_changed', progress, subscriber.error, subscriber.complete);
 
     // I REMOVED THE UNSUBSCRIBE RETURN BECAUSE IT CANCELS THE UPLOAD
     // https://github.com/firebase/firebase-js-sdk/issues/1659
@@ -30,34 +26,23 @@ function _fromTask(task: storage.UploadTask) {
  *
  * @param task - the task you want to listen to
  * @param ref - reference to the blob the task is acting on
- * @param options
  */
-export function useStorageTask<T = unknown>(
+export function useStorageTask(
   task: storage.UploadTask,
-  ref: storage.Reference,
-  options?: ReactFireOptions<T>
-): storage.UploadTaskSnapshot | T {
-  return useObservable(
-    _fromTask(task),
-    'storage upload: ' + ref.toString(),
-    options ? options.startWithValue : undefined
-  );
+  ref: storage.Reference
+): storage.UploadTaskSnapshot {
+  return useObservable(_fromTask(task), 'storage upload: ' + ref.toString());
 }
 
 /**
  * Subscribe to a storage ref's download URL
  *
  * @param ref - reference to the blob you want to download
- * @param options
  */
-export function useStorageDownloadURL<T = string>(
-  ref: storage.Reference,
-  options?: ReactFireOptions<T>
-): string | T {
+export function useStorageDownloadURL(ref: storage.Reference): string {
   return useObservable(
     getDownloadURL(ref),
-    'storage download:' + ref.toString(),
-    options ? options.startWithValue : undefined
+    'storage download:' + ref.toString()
   );
 }
 

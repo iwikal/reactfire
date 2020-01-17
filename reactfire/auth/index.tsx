@@ -1,13 +1,7 @@
 import { auth, User } from 'firebase/app';
 import * as React from 'react';
 import { user } from 'rxfire/auth';
-import {
-  preloadAuth,
-  preloadObservable,
-  ReactFireOptions,
-  useAuth,
-  useObservable
-} from '..';
+import { preloadAuth, preloadObservable, useAuth, useObservable } from '..';
 import { from } from 'rxjs';
 
 export function preloadUser(firebaseApp: firebase.app.App) {
@@ -16,7 +10,7 @@ export function preloadUser(firebaseApp: firebase.app.App) {
       user(auth() as firebase.auth.Auth),
       'auth: user'
     );
-    return result.request.promise;
+    return result.promise;
   });
 }
 
@@ -24,25 +18,11 @@ export function preloadUser(firebaseApp: firebase.app.App) {
  * Subscribe to Firebase auth state changes, including token refresh
  *
  * @param auth - the [firebase.auth](https://firebase.google.com/docs/reference/js/firebase.auth) object
- * @param options
  */
-export function useUser<T = unknown>(
-  auth?: auth.Auth,
-  options?: ReactFireOptions<T>
-): User | T {
+export function useUser(auth?: auth.Auth): User {
   auth = auth || useAuth()();
 
-  let currentUser = undefined;
-
-  if (options && options.startWithValue !== undefined) {
-    currentUser = options.startWithValue;
-  } else if (auth.currentUser) {
-    // if auth.currentUser is undefined or null, we won't use it
-    // because null can mean "not signed in" OR "still loading"
-    currentUser = auth.currentUser;
-  }
-
-  return useObservable(user(auth), 'auth: user', currentUser);
+  return useObservable(user(auth), 'auth: user');
 }
 
 export function useIdTokenResult(user: User, forceRefresh: boolean = false) {
@@ -95,7 +75,7 @@ export function AuthCheck({
   children,
   requiredClaims
 }: AuthCheckProps): JSX.Element {
-  const user = useUser<User>(auth);
+  const user = useUser(auth);
 
   if (user) {
     return requiredClaims ? (
