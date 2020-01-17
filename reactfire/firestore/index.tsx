@@ -44,7 +44,7 @@ export function useFirestoreCollection(
     skipCache
       ? observable.pipe(skipWhile(snap => snap.metadata.fromCache))
       : observable,
-    queryId
+    queryId + `|skipCache:${skipCache}`
   );
 }
 
