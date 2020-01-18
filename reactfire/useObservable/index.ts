@@ -26,12 +26,13 @@ export function useObservable<T>(
 ): Resource<T> {
   return resourcify(() => {
     const entry = preloadObservable(observable, observableId);
+    const value = entry.read();
 
-    const [, setValue] = React.useState<T>();
+    const [, setValue] = React.useState(value);
 
     React.useEffect(() => {
       const subscription = entry.observable.subscribe(
-        snap => setValue(snap),
+        value => setValue(value),
         err => {
           throw err;
         }
@@ -40,6 +41,6 @@ export function useObservable<T>(
       return () => subscription.unsubscribe();
     }, [observableId]);
 
-    return entry.read();
+    return value;
   })();
 }
