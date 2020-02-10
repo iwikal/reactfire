@@ -23,12 +23,11 @@ const mockFirebase = {
 };
 
 const PromiseThrower = () => {
-  throw new Promise((resolve, reject) => {});
-  return <h1>Hello world</h1>;
+  throw new Promise(() => {});
 };
 
 const Provider = ({ children }) => (
-  <FirebaseAppProvider firebaseApp={mockFirebase}>
+  <FirebaseAppProvider firebaseApp={mockFirebase as any}>
     {children}
   </FirebaseAppProvider>
 );
@@ -45,7 +44,7 @@ describe('SuspenseWithPerf', () => {
     const Fallback = () => <h1 data-testid="fallback">Fallback</h1>;
 
     const Comp = () => {
-      useObservable(o$, 'test');
+      useObservable(o$, 'test').read();
 
       return <h1 data-testid="child">Actual</h1>;
     };
@@ -103,7 +102,7 @@ describe('SuspenseWithPerf', () => {
     const o$ = new Subject();
     let shouldThrow = true;
 
-    const promise = new Promise((resolve, reject) => {
+    const promise = new Promise(resolve => {
       o$.subscribe(() => {
         shouldThrow = false;
         resolve();
@@ -193,7 +192,7 @@ describe('SuspenseWithPerf', () => {
     const o$ = new Subject();
 
     const Comp = () => {
-      const val = useObservable(o$, 'test');
+      const val = useObservable(o$, 'no-reuse').read();
 
       if (val === 'throw') {
         throw new Promise(() => {});
@@ -215,7 +214,7 @@ describe('SuspenseWithPerf', () => {
     };
 
     // render SuspenseWithPerf and go through normal trace start -> trace stop
-    const { getByTestId, rerender } = render(<Component />);
+    const { getByTestId } = render(<Component />);
     expect(createTrace).toHaveBeenCalledTimes(1);
     act(() => o$.next('some value'));
     await waitForElement(() => getByTestId('child'));

@@ -4,8 +4,6 @@ import * as React from 'react';
 import '@testing-library/jest-dom/extend-expect';
 import * as firebase from '@firebase/testing';
 import { useDatabaseObject, useDatabaseList, FirebaseAppProvider } from '..';
-import { database } from 'firebase/app';
-import { QueryChange } from 'rxfire/database/dist/database';
 
 describe('Realtime Database (RTDB)', () => {
   let app: import('firebase').app.App;
@@ -47,13 +45,13 @@ describe('Realtime Database (RTDB)', () => {
       await ref.set(mockData);
 
       const ReadObject = () => {
-        const { snapshot } = useDatabaseObject(ref);
+        const { snapshot } = useDatabaseObject(ref).read();
 
         return <h1 data-testid="readSuccess">{snapshot.val().a}</h1>;
       };
 
       const { getByTestId } = render(
-        <FirebaseAppProvider firebase={app}>
+        <FirebaseAppProvider firebaseApp={app}>
           <React.Suspense fallback={<h1 data-testid="fallback">Fallback</h1>}>
             <ReadObject />
           </React.Suspense>
@@ -77,7 +75,7 @@ describe('Realtime Database (RTDB)', () => {
       await act(() => ref.push(mockData2));
 
       const ReadList = () => {
-        const changes = useDatabaseList(ref) as QueryChange[];
+        const changes = useDatabaseList(ref).read();
 
         return (
           <ul data-testid="readSuccess">
@@ -91,7 +89,7 @@ describe('Realtime Database (RTDB)', () => {
       };
 
       const { getAllByTestId } = render(
-        <FirebaseAppProvider firebase={app}>
+        <FirebaseAppProvider firebaseApp={app}>
           <React.Suspense fallback={<h1 data-testid="fallback">Fallback</h1>}>
             <ReadList />
           </React.Suspense>
@@ -114,8 +112,8 @@ describe('Realtime Database (RTDB)', () => {
       await act(() => ref.push(mockData2));
 
       const ReadFirestoreCollection = () => {
-        const list = useDatabaseList(ref) as QueryChange[];
-        const filteredList = useDatabaseList(filteredRef) as QueryChange[];
+        const list = useDatabaseList(ref).read();
+        const filteredList = useDatabaseList(filteredRef).read();
 
         // filteredList's length should be 1 since we only added one value that matches its query
         expect(filteredList.length).toEqual(1);
@@ -127,7 +125,7 @@ describe('Realtime Database (RTDB)', () => {
       };
 
       const { getByTestId } = render(
-        <FirebaseAppProvider firebase={app}>
+        <FirebaseAppProvider firebaseApp={app}>
           <React.Suspense fallback={<h1 data-testid="fallback">Fallback</h1>}>
             <ReadFirestoreCollection />
           </React.Suspense>

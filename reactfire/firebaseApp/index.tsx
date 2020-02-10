@@ -10,18 +10,17 @@ const FirebaseAppContext = React.createContext<
 >(undefined);
 
 type BaseProps = {
-  initPerformance?: boolean
-}
+  initPerformance?: boolean;
+};
 
 type InitProps = BaseProps & {
-  firebaseConfig: Object
-  firebaseApp: undefined
-}
+  firebaseConfig: Object;
+  firebaseApp: undefined;
+};
 
 type NoInitProps = BaseProps & {
-  firebaseConfig: undefined
-  firebaseApp: firebase.app.App
-}
+  firebaseApp: firebase.app.App;
+};
 
 export type FirebaseAppProviderProps = React.PropsWithChildren<
   InitProps | NoInitProps

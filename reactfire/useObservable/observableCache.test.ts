@@ -46,6 +46,8 @@ describe('ObservableCache', () => {
       expect(cache.activeObservables.size).toBe(1);
 
       subscription.unsubscribe();
+      jest.runAllTimers();
+
       expect(cache.activeObservables.size).toBe(0);
     });
 
@@ -56,7 +58,7 @@ describe('ObservableCache', () => {
         const subject = new Subject<number>();
         const entry = cache.createDedupedObservable(() => subject, 'id');
 
-        expect(entry.read).toThrow(Promise);
+        expect(() => entry.read()).toThrow(Promise);
       });
 
       it('returns values', async () => {
