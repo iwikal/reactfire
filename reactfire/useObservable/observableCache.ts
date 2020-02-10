@@ -1,5 +1,6 @@
 import { Observable } from 'rxjs';
-import { finalize, share, tap, first } from 'rxjs/operators';
+import { share, tap, first } from 'rxjs/operators';
+import { Resource } from '..';
 
 function deferUnsubscribe<T>(timeout: number) {
   return (source: Observable<T>) =>
@@ -21,7 +22,7 @@ function deferUnsubscribe<T>(timeout: number) {
 function withCleanup<T>(cleanup: () => void) {
   return (source: Observable<T>) =>
     new Observable<T>(subscriber => {
-      const subscription = source.pipe(finalize(cleanup)).subscribe(subscriber);
+      const subscription = source.subscribe(subscriber);
       return () => {
         subscription.unsubscribe();
         cleanup();
@@ -29,39 +30,47 @@ function withCleanup<T>(cleanup: () => void) {
     });
 }
 
-export class CacheEntry<T> {
+type SuccessfulResult<T> = {
+  success: true
+  value: T
+}
+
+type FailedResult = {
+  success: false
+  error: any
+}
+
+type Result<T> = SuccessfulResult<T> | FailedResult
+
+export class CacheEntry<T> implements Resource<T> {
   readonly observable: Observable<T>;
   readonly promise: Promise<T>;
-  read: () => T;
+  result?: Result<T>;
 
   constructor(observable: Observable<T>, id: string, cache: ObservableCache) {
-    this.read = () => {
-      throw this.promise;
+    const cleanup = () => {
+      cache.removeObservable(id, this);
     };
-
-    const cleanup = () => cache.removeObservable(id, this);
 
     this.observable = observable.pipe(
       withCleanup(cleanup),
       tap(
-        value => {
-          this.read = () => value;
-        },
-        err => {
-          this.read = () => {
-            throw err;
-          };
-        }
+        value => (this.result = { success: true, value }),
+        error => (this.result = { success: false, error })
       ),
-      share()
+      share(),
+      deferUnsubscribe(1000)
     );
 
     this.promise = this.observable
-      .pipe(
-        deferUnsubscribe(1000),
-        first()
-      )
+      .pipe(first())
       .toPromise();
+  }
+
+  read() {
+    if (!this.result) throw this.promise;
+    if (!this.result.success) throw this.result.error;
+    return this.result.value;
   }
 }
 

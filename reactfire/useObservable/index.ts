@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Observable } from 'rxjs';
 import { CacheEntry, ObservableCache } from './observableCache';
-import { Resource, resourcify } from '..';
+import { Resource } from '..';
 
 export { preloadRequest, usePreloadedRequest } from './requestCache';
 
@@ -24,23 +24,18 @@ export function useObservable<T>(
   observable: Observable<T>,
   observableId: string
 ): Resource<T> {
-  return resourcify(() => {
-    const entry = preloadObservable(observable, observableId);
-    const value = entry.read();
+  const entry = preloadObservable(observable, observableId);
 
-    const [, setValue] = React.useState(value);
+  const { result } = entry;
+  const initialValue = result && result.success ? result.value : undefined;
 
-    React.useEffect(() => {
-      const subscription = entry.observable.subscribe(
-        value => setValue(value),
-        err => {
-          throw err;
-        }
-      );
+  const [, setValue] = React.useState(initialValue);
 
-      return () => subscription.unsubscribe();
-    }, [observableId]);
+  React.useEffect(() => {
+    const subscription = entry.observable.subscribe(value => setValue(value));
 
-    return value;
-  })();
+    return () => subscription.unsubscribe();
+  }, [observableId]);
+
+  return entry;
 }
