@@ -1,5 +1,5 @@
 import { ObservableCache } from './observableCache';
-import { Observable, Subject, BehaviorSubject, throwError } from 'rxjs';
+import { Observable, Subject, BehaviorSubject } from 'rxjs';
 
 jest.useFakeTimers();
 
@@ -64,27 +64,31 @@ describe('ObservableCache', () => {
       it('returns values', async () => {
         const cache = new ObservableCache();
 
-        const subject = new BehaviorSubject(8);
+        const subject = new BehaviorSubject('value');
         const entry = cache.createDedupedObservable(() => subject, 'id');
 
-        expect(entry.read()).toBe(8);
+        expect(entry.read()).toBe('value');
 
-        subject.next(9);
-        expect(entry.read()).toBe(9);
+        subject.next('next value');
+        expect(entry.read()).toBe('next value');
       });
 
-      it('throws errors', async () => {
+      it('throws error, waits, and removes itself', async () => {
         const cache = new ObservableCache();
 
-        const subject = new BehaviorSubject(8);
+        const subject = new BehaviorSubject('value');
         const entry = cache.createDedupedObservable(() => subject, 'id');
 
-        expect(entry.read()).toBe(8);
+        expect(entry.read()).toBe('value');
 
         expect(cache.activeObservables.size).toBe(1);
 
-        subject.error(new Error('hello'));
-        expect(entry.read).toThrowError();
+        subject.error(new Error('error'));
+        expect(() => entry.read()).toThrowError('error');
+
+        expect(cache.activeObservables.size).toBe(1);
+
+        jest.runAllTimers();
 
         expect(cache.activeObservables.size).toBe(0);
       });
@@ -93,7 +97,7 @@ describe('ObservableCache', () => {
     it('only subscribes once to the source', async () => {
       const cache = new ObservableCache();
 
-      const subject = new BehaviorSubject(8);
+      const subject = new BehaviorSubject('value');
       let count = 0;
 
       const entry = cache.createDedupedObservable(

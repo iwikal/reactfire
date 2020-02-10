@@ -31,16 +31,16 @@ function withCleanup<T>(cleanup: () => void) {
 }
 
 type SuccessfulResult<T> = {
-  success: true
-  value: T
-}
+  success: true;
+  value: T;
+};
 
 type FailedResult = {
-  success: false
-  error: any
-}
+  success: false;
+  error: any;
+};
 
-type Result<T> = SuccessfulResult<T> | FailedResult
+type Result<T> = SuccessfulResult<T> | FailedResult;
 
 export class CacheEntry<T> implements Resource<T> {
   readonly observable: Observable<T>;
@@ -49,7 +49,13 @@ export class CacheEntry<T> implements Resource<T> {
 
   constructor(observable: Observable<T>, id: string, cache: ObservableCache) {
     const cleanup = () => {
-      cache.removeObservable(id, this);
+      if (this.result && this.result.success === false) {
+        setTimeout(() => {
+          cache.removeObservable(id, this);
+        }, 1000);
+      } else {
+        cache.removeObservable(id, this);
+      }
     };
 
     this.observable = observable.pipe(
@@ -62,9 +68,7 @@ export class CacheEntry<T> implements Resource<T> {
       deferUnsubscribe(1000)
     );
 
-    this.promise = this.observable
-      .pipe(first())
-      .toPromise();
+    this.promise = this.observable.pipe(first()).toPromise();
   }
 
   read() {
