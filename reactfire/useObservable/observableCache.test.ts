@@ -30,13 +30,31 @@ describe('ObservableCache', () => {
       expect(cache.activeObservables.size).toBe(0);
     });
 
+    it('stays around until one second after first value', async () => {
+      const cache = new ObservableCache();
+
+      const subject = new Subject();
+      cache.createDedupedObservable(() => subject, 'id');
+
+      expect(cache.activeObservables.size).toBe(1);
+      jest.runAllTimers();
+      expect(cache.activeObservables.size).toBe(1);
+      subject.next(99);
+      expect(cache.activeObservables.size).toBe(1);
+      jest.runAllTimers();
+      expect(cache.activeObservables.size).toBe(0);
+    });
+
     it('stays as long as someone is subscribed', async () => {
       const cache = new ObservableCache();
 
-      const subject = new BehaviorSubject(42);
+      const subject = new Subject();
       const entry = cache.createDedupedObservable(() => subject, 'id');
 
-      expect(entry.read()).toBe(42);
+      expect(cache.activeObservables.size).toBe(1);
+      jest.runAllTimers();
+      expect(cache.activeObservables.size).toBe(1);
+      subject.next(99);
       expect(cache.activeObservables.size).toBe(1);
 
       const subscription = entry.observable.subscribe();
@@ -46,6 +64,8 @@ describe('ObservableCache', () => {
       expect(cache.activeObservables.size).toBe(1);
 
       subscription.unsubscribe();
+      expect(cache.activeObservables.size).toBe(1);
+
       jest.runAllTimers();
 
       expect(cache.activeObservables.size).toBe(0);
@@ -58,7 +78,7 @@ describe('ObservableCache', () => {
         const subject = new Subject<number>();
         const entry = cache.createDedupedObservable(() => subject, 'id');
 
-        expect(() => entry.read()).toThrow(Promise);
+        expect(entry.resource.read).toThrow(Promise);
       });
 
       it('returns values', async () => {
@@ -67,10 +87,10 @@ describe('ObservableCache', () => {
         const subject = new BehaviorSubject('value');
         const entry = cache.createDedupedObservable(() => subject, 'id');
 
-        expect(entry.read()).toBe('value');
+        expect(entry.resource.read()).toBe('value');
 
         subject.next('next value');
-        expect(entry.read()).toBe('next value');
+        expect(entry.resource.read()).toBe('next value');
       });
 
       it('throws error, waits, and removes itself', async () => {
@@ -79,12 +99,12 @@ describe('ObservableCache', () => {
         const subject = new BehaviorSubject('value');
         const entry = cache.createDedupedObservable(() => subject, 'id');
 
-        expect(entry.read()).toBe('value');
+        expect(entry.resource.read()).toBe('value');
 
         expect(cache.activeObservables.size).toBe(1);
 
         subject.error(new Error('error'));
-        expect(() => entry.read()).toThrowError('error');
+        expect(entry.resource.read).toThrowError('error');
 
         expect(cache.activeObservables.size).toBe(1);
 
