@@ -1,8 +1,6 @@
 import * as firebase from 'firebase/app';
 import * as React from 'react';
 
-export * from './sdk';
-
 type FirebaseAppContextValue = firebase.app.App;
 
 const FirebaseAppContext = React.createContext<

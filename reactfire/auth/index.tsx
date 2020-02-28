@@ -1,40 +1,25 @@
-import { auth, User } from 'firebase/app';
+import * as firebase from 'firebase/app';
 import * as React from 'react';
 import { user } from 'rxfire/auth';
-import {
-  Resource,
-  preloadAuth,
-  preloadObservable,
-  useAuth,
-  useObservable
-} from '..';
+import { Resource } from '../resource';
+import { useObservable } from '../useObservable';
 import { from } from 'rxjs';
-
-export function preloadUser(firebaseApp: firebase.app.App) {
-  return preloadAuth(firebaseApp).then((auth: any) => {
-    const result = preloadObservable(
-      user(auth() as firebase.auth.Auth),
-      'auth: user'
-    );
-    return result.promise;
-  });
-}
 
 /**
  * Subscribe to Firebase auth state changes, including token refresh
  *
  * @param auth - the [firebase.auth](https://firebase.google.com/docs/reference/js/firebase.auth) object
  */
-export function useUser(auth?: auth.Auth): Resource<User> {
-  const definedAuth = auth || useAuth()();
+export function useUser(auth?: firebase.auth.Auth): Resource<firebase.User> {
+  const definedAuth = auth || firebase.auth();
 
   return useObservable(user(definedAuth), 'auth: user');
 }
 
 export function useIdTokenResult(
-  user: User,
+  user: firebase.User,
   forceRefresh: boolean = false
-): Resource<auth.IdTokenResult> {
+): Resource<firebase.auth.IdTokenResult> {
   if (!user) {
     throw new Error('you must provide a user');
   }
@@ -45,21 +30,21 @@ export function useIdTokenResult(
 }
 
 interface Claims {
-  [key: string]: any
+  [key: string]: any;
 }
 
 export interface AuthCheckProps {
-  auth?: auth.Auth;
+  auth?: firebase.auth.Auth;
   fallback: React.ReactNode;
   children: React.ReactNode;
-  requiredClaims?: Claims
+  requiredClaims?: Claims;
 }
 
 export interface ClaimsCheckProps {
-  user: User;
+  user: firebase.User;
   fallback: React.ReactNode;
   children: React.ReactNode;
-  requiredClaims?: Claims
+  requiredClaims?: Claims;
 }
 
 export function ClaimsCheck({

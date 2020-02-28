@@ -1,6 +1,6 @@
 import { performance } from 'firebase/app';
 import * as React from 'react';
-import { useFirebaseApp } from '..';
+import { useFirebaseApp } from '../firebaseApp';
 
 export interface SuspensePerfProps {
   children: React.ReactNode;

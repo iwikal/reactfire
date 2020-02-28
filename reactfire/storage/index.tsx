@@ -2,7 +2,9 @@ import * as React from 'react';
 import { storage } from 'firebase/app';
 import { getDownloadURL } from 'rxfire/storage';
 import { Observable } from 'rxjs';
-import { Resource, useObservable, useFirebaseApp } from '..';
+import { Resource } from '../resource';
+import { useObservable } from '../useObservable';
+import { useFirebaseApp } from '../firebaseApp';
 
 /**
  * modified version of rxFire's _fromTask

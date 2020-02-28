@@ -1,7 +1,9 @@
 import { firestore } from 'firebase/app';
 import { fromDocRef, fromCollectionRef } from 'rxfire/firestore';
-import { Resource, ReactFireOptions, useObservable } from '..';
 import { skipWhile } from 'rxjs/operators';
+import { useObservable } from '../useObservable';
+import { Resource } from '../resource';
+import { ReactFireOptions } from '../options';
 
 /**
  * Suscribe to Firestore Document changes
