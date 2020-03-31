@@ -1,6 +1,9 @@
+/**
+ * @jest-environment jsdom
+ */
 import { render, waitForElement, cleanup, act } from '@testing-library/react';
 
-import * as React from 'react';
+import React from 'react';
 import '@testing-library/jest-dom/extend-expect';
 import * as firebase from '@firebase/testing';
 import {
@@ -48,9 +51,11 @@ describe('Firestore', () => {
       await ref.set(mockData);
 
       const ReadFirestoreDoc = () => {
-        const doc = useFirestoreDoc(ref).read();
+        const data = useFirestoreDoc(ref)
+          .read()
+          .data();
 
-        return <h1 data-testid="readSuccess">{doc.data().a}</h1>;
+        return <h1 data-testid="readSuccess">{data && data.a}</h1>;
       };
       const { getByTestId } = render(
         <FirebaseAppProvider firebaseApp={app}>
@@ -73,8 +78,8 @@ describe('Firestore', () => {
 
       const ref = app.firestore().collection('testCollection');
 
-      await act(() => ref.add(mockData1));
-      await act(() => ref.add(mockData2));
+      act(() => void ref.add(mockData1));
+      act(() => void ref.add(mockData2));
 
       const ReadFirestoreCollection = () => {
         const collection = useFirestoreCollection(ref).read();

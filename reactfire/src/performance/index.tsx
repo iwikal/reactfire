@@ -1,6 +1,25 @@
 import { performance } from 'firebase/app';
-import * as React from 'react';
+import React from 'react';
 import { useFirebaseApp } from '../firebaseApp';
+
+interface FallbackProps {
+  traceId: string;
+  perf: performance.Performance;
+  fallback: React.ReactNode;
+}
+
+function Fallback(props: FallbackProps) {
+  React.useLayoutEffect(() => {
+    const trace = props.perf.trace(props.traceId);
+    trace.start();
+
+    return () => {
+      trace.stop();
+    };
+  }, [props.perf, props.traceId]);
+
+  return <>{props.fallback}</>;
+}
 
 export interface SuspensePerfProps {
   children: React.ReactNode;
@@ -9,45 +28,20 @@ export interface SuspensePerfProps {
   firePerf?: performance.Performance;
 }
 
-function getPerfFromContext(): performance.Performance {
-  const firebaseApp = useFirebaseApp();
-  if (!firebaseApp) {
-    throw new Error(
-      'Firebase not found in context. Either pass it directly to a reactfire hook, or wrap your component in a FirebaseAppProvider'
-    );
-  }
-
-  const perfFunc = firebaseApp.performance;
-
-  if (!perfFunc || !perfFunc()) {
-    throw new Error(
-      "No perf object off of Firebase. Did you forget to import 'firebase/performance' in a component?"
-    );
-  }
-
-  return perfFunc();
-}
-
 export function SuspenseWithPerf({
   children,
   traceId,
   fallback,
   firePerf
 }: SuspensePerfProps): JSX.Element {
-  const perf = firePerf || getPerfFromContext();
+  const appResource = useFirebaseApp();
+  const perf = firePerf || appResource.read().performance();
 
-  const Fallback = () => {
-    React.useLayoutEffect(() => {
-      const trace = perf.trace(traceId);
-      trace.start();
-
-      return () => {
-        trace.stop();
-      };
-    }, [traceId]);
-
-    return <>{fallback}</>;
-  };
-
-  return <React.Suspense fallback={<Fallback />}>{children}</React.Suspense>;
+  return (
+    <React.Suspense
+      fallback={<Fallback traceId={traceId} perf={perf} fallback={fallback} />}
+    >
+      {children}
+    </React.Suspense>
+  );
 }

@@ -1,9 +1,9 @@
-import * as firebase from 'firebase/app';
-import * as React from 'react';
+import React from 'react';
 import { user } from 'rxfire/auth';
 import { Resource } from '../resource';
 import { useObservable } from '../useObservable';
 import { from } from 'rxjs';
+import { useFirebaseApp } from '../firebaseApp';
 
 /**
  * Subscribe to Firebase auth state changes, including token refresh
@@ -11,7 +11,8 @@ import { from } from 'rxjs';
  * @param auth - the [firebase.auth](https://firebase.google.com/docs/reference/js/firebase.auth) object
  */
 export function useUser(auth?: firebase.auth.Auth): Resource<firebase.User> {
-  const definedAuth = auth || firebase.auth();
+  const appResource = useFirebaseApp();
+  const definedAuth = auth || appResource.read().auth();
 
   return useObservable(user(definedAuth), 'auth: user');
 }

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { storage } from 'firebase/app';
 import { getDownloadURL } from 'rxfire/storage';
 import { Observable } from 'rxjs';
@@ -64,7 +64,8 @@ export function StorageImage(
 ) {
   let { storage, storagePath, ...imgProps } = props;
 
-  storage = storage || useFirebaseApp().storage();
+  const appResource = useFirebaseApp();
+  storage = storage || appResource.read().storage();
 
   const imgSrc = useStorageDownloadURL(storage.ref(storagePath));
   return <img src={imgSrc.read()} {...imgProps} />;

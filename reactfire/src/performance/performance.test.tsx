@@ -1,7 +1,10 @@
+/**
+ * @jest-environment jsdom
+ */
 import { act, cleanup, render, waitForElement } from '@testing-library/react';
 import { performance } from 'firebase/app';
 import '@testing-library/jest-dom/extend-expect';
-import * as React from 'react';
+import React from 'react';
 import { Subject } from 'rxjs';
 import { SuspenseWithPerf } from '.';
 import { FirebaseAppProvider, useObservable } from '..';
@@ -26,7 +29,7 @@ const PromiseThrower = () => {
   throw new Promise(() => {});
 };
 
-const Provider = ({ children }) => (
+const Provider = ({ children }: any) => (
   <FirebaseAppProvider firebaseApp={mockFirebase as any}>
     {children}
   </FirebaseAppProvider>
