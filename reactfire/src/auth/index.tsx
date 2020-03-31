@@ -1,4 +1,5 @@
 import React from 'react';
+import firebase from 'firebase/app';
 import { user } from 'rxfire/auth';
 import { Resource } from '../resource';
 import { useObservable } from '../useObservable';
