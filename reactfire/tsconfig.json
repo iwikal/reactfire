@@ -12,5 +12,5 @@
     "declaration": true,
     "skipLibCheck": true
   },
-  "files": ["index.ts"]
+  "files": ["src/index.ts"]
 }

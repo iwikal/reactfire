@@ -1,7 +1,7 @@
 import typescript from '@rollup/plugin-typescript';
 
 const config = {
-  input: './index.ts',
+  input: './src/index.ts',
   plugins: [typescript()],
   external: [
     'firebase/app',

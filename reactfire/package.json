@@ -2,17 +2,20 @@
   "name": "@iwikal/reactfire",
   "version": "2.0.0",
   "description": "Firebase library for React",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "module": "pub/reactfire/esm/index.js",
+  "main": "pub/reactfire/cjs/index.js",
+  "types": "pub/reactfire/index.d.ts",
+  "files": [
+    "pub"
+  ],
   "private": true,
   "scripts": {
     "build-dev": "tsc --watch",
     "test-dev": "jest --verbose --watch",
     "emulators": "firebase emulators:start --only firestore,database",
     "test": "firebase emulators:exec --only firestore,database \"jest --no-cache --verbose --detectOpenHandles --forceExit\"",
-    "copy-package-json": "cp package.pub.json pub/reactfire/package.json",
-    "watch": "yarn build && tsc --watch",
-    "build": "rm -rf pub && tsc --emitDeclarationOnly && yarn copy-package-json && cp ../README.md pub/reactfire/README.md && cp ../LICENSE pub/reactfire/LICENSE && rollup -c"
+    "watch": "tsc --watch",
+    "build": "rm -rf pub && tsc --emitDeclarationOnly && rollup -c"
   },
   "repository": {
     "type": "git",
@@ -27,6 +30,10 @@
   "dependencies": {
     "rxfire": "^3.6.6",
     "rxjs": "^6.4.0"
+  },
+  "peerDependencies": {
+    "firebase": "^7.0.0",
+    "react": "0.0.0-experimental-f6b8d31a7"
   },
   "devDependencies": {
     "@firebase/app": "^0.4.8",
