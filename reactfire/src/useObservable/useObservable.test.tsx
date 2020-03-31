@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/extend-expect';
 import { act, cleanup, render, waitForElement } from '@testing-library/react';
-import * as React from 'react';
+import React from 'react';
 import { Subject, throwError } from 'rxjs';
 import { useObservable } from '.';
 
@@ -34,7 +34,7 @@ describe('useObservable', () => {
     spy.mockImplementation(() => {});
 
     class ErrorBoundary extends React.Component<{}, { hasError: boolean }> {
-      constructor(props) {
+      constructor(props: {}) {
         super(props);
         this.state = { hasError: false };
       }
@@ -112,13 +112,13 @@ describe('useObservable', () => {
     const firstComponentId = 'first';
     const secondComponentId = 'second';
 
-    const ObservableConsumer = props => {
+    const ObservableConsumer = (props: any) => {
       const val = useObservable(observable$, observableId).read();
 
       return <h1 {...props}>{val}</h1>;
     };
 
-    const Component = ({ renderSecondComponent }) => {
+    const Component = ({ renderSecondComponent = false }) => {
       return (
         <React.Suspense fallback="loading">
           <ObservableConsumer data-testid={firstComponentId} />

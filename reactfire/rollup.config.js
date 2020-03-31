@@ -1,21 +1,35 @@
-import resolve from 'rollup-plugin-node-resolve';
+import typescript from '@rollup/plugin-typescript';
 
-export default {
-  input: './pub/reactfire/index.js',
-  output: {
-    dir: './pub/reactfire/cjs',
-    format: 'cjs',
-    name: 'reactfire'
-  },
+const config = {
+  input: './src/index.ts',
+  plugins: [typescript()],
   external: [
-    'react',
     'firebase/app',
+    'react',
     'rxfire/auth',
     'rxfire/database',
     'rxfire/firestore',
     'rxfire/storage',
     'rxjs',
     'rxjs/operators'
-  ],
-  plugins: [resolve()]
+  ]
 };
+
+export default [
+  {
+    ...config,
+    output: {
+      dir: './pub/reactfire/cjs',
+      format: 'cjs',
+      name: 'reactfire'
+    }
+  },
+  {
+    ...config,
+    output: {
+      dir: './pub/reactfire/esm',
+      format: 'esm',
+      name: 'reactfire'
+    }
+  }
+];

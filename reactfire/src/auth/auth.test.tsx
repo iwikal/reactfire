@@ -1,10 +1,13 @@
-import { cleanup, render, waitForElement, wait } from '@testing-library/react';
-import { auth, User } from 'firebase/app';
+/**
+ * @jest-environment jsdom
+ */
+import { cleanup, render, wait } from '@testing-library/react';
+import { auth } from 'firebase/app';
 import '@testing-library/jest-dom/extend-expect';
-import * as React from 'react';
+import React from 'react';
 import { AuthCheck, useUser } from '.';
 import { FirebaseAppProvider } from '..';
-import { Observable, Observer } from 'rxjs';
+import { Observer } from 'rxjs';
 import { act } from 'react-dom/test-utils';
 
 class MockAuth {
@@ -21,12 +24,12 @@ class MockAuth {
     }
   }
 
-  onIdTokenChanged(s) {
+  onIdTokenChanged(s: any) {
     this.subscriber = s;
     this.notifySubscriber();
   }
 
-  updateUser(u: Object) {
+  updateUser(u: any) {
     this.user = u;
     this.notifySubscriber();
   }
@@ -38,17 +41,17 @@ const mockFirebase = {
   auth: () => mockAuth
 };
 
-const Provider = ({ children }) => (
-  <FirebaseAppProvider firebaseApp={mockFirebase}>
-    {children}
+const Provider = (props: any) => (
+  <FirebaseAppProvider firebaseApp={mockFirebase as any}>
+    {props.children}
   </FirebaseAppProvider>
 );
 
-const Component = ({ children }) => (
+const Component = (props: any) => (
   <Provider>
     <React.Suspense fallback={'loading'}>
       <AuthCheck fallback={<h1 data-testid="signed-out">not signed in</h1>}>
-        {children || <h1 data-testid="signed-in">signed in</h1>}
+        {props.children || <h1 data-testid="signed-in">signed in</h1>}
       </AuthCheck>
     </React.Suspense>
   </Provider>

@@ -1,6 +1,7 @@
 import { database } from 'firebase/app';
 import { list, object, QueryChange } from 'rxfire/database';
-import { Resource, useObservable } from '..';
+import { useObservable } from '../useObservable';
+import { Resource } from '../resource';
 
 /**
  * Subscribe to a Realtime Database object

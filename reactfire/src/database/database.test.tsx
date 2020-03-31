@@ -1,6 +1,9 @@
+/**
+ * @jest-environment jsdom
+ */
 import '@testing-library/jest-dom/extend-expect';
 import { render, waitForElement, cleanup, act } from '@testing-library/react';
-import * as React from 'react';
+import React from 'react';
 import '@testing-library/jest-dom/extend-expect';
 import * as firebase from '@firebase/testing';
 import { useDatabaseObject, useDatabaseList, FirebaseAppProvider } from '..';
@@ -71,8 +74,8 @@ describe('Realtime Database (RTDB)', () => {
 
       const ref = app.database().ref('myList');
 
-      await act(() => ref.push(mockData1));
-      await act(() => ref.push(mockData2));
+      act(() => void ref.push(mockData1));
+      act(() => void ref.push(mockData2));
 
       const ReadList = () => {
         const changes = useDatabaseList(ref).read();
@@ -80,7 +83,7 @@ describe('Realtime Database (RTDB)', () => {
         return (
           <ul data-testid="readSuccess">
             {changes.map(({ snapshot }) => (
-              <li key={snapshot.key} data-testid="listItem">
+              <li key={String(snapshot.key)} data-testid="listItem">
                 {snapshot.val().a}
               </li>
             ))}
@@ -108,8 +111,8 @@ describe('Realtime Database (RTDB)', () => {
       const ref = app.database().ref('items');
       const filteredRef = ref.orderByChild('a').equalTo('hello');
 
-      await act(() => ref.push(mockData1));
-      await act(() => ref.push(mockData2));
+      act(() => void ref.push(mockData1));
+      act(() => void ref.push(mockData2));
 
       const ReadFirestoreCollection = () => {
         const list = useDatabaseList(ref).read();
