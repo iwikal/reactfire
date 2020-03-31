@@ -6,6 +6,7 @@
   "main": "pub/reactfire/cjs/index.js",
   "types": "pub/reactfire/index.d.ts",
   "files": [
+    "README.md",
     "pub"
   ],
   "private": false,
