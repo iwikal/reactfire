@@ -52,7 +52,7 @@ export class CacheEntry<T> {
       finalize(() => cache.removeObservable(id, this)),
       tap(resource => (this.resource = resource)),
       share(),
-      deferUnsubscribe(1000)
+      deferUnsubscribe(cache.timeout)
     );
 
     this.promise = this.observable
@@ -64,9 +64,11 @@ export class CacheEntry<T> {
 
 export class ObservableCache {
   activeObservables: Map<string, CacheEntry<any>>;
+  timeout: number;
 
-  constructor() {
+  constructor({ timeout = 30000 } = {}) {
     this.activeObservables = new Map();
+    this.timeout = timeout;
   }
 
   getObservable(observableId: string) {
