@@ -69,6 +69,35 @@ describe('Firestore', () => {
 
       expect(getByTestId('readSuccess')).toContainHTML(mockData.a);
     });
+
+    it('can switch document [TEST REQUIRES EMULATOR]', async () => {
+      function Reader(props: { path: string }) {
+        const resource = useFirestoreDoc(app.firestore().doc(props.path));
+
+        return React.useMemo(() => {
+          const { path } = resource.read().ref;
+          return <h1 data-testid={path}>{path}</h1>;
+        }, [resource]);
+      }
+
+      function Provider(props: { path: string }) {
+        return (
+          <FirebaseAppProvider firebaseApp={app}>
+            <React.Suspense fallback={<h1 data-testid="fallback">Fallback</h1>}>
+              <Reader path={props.path} />
+            </React.Suspense>
+          </FirebaseAppProvider>
+        );
+      }
+
+      const { getByTestId, rerender } = render(<Provider path="users/alice" />);
+
+      await waitForElement(() => getByTestId('users/alice'));
+
+      rerender(<Provider path="users/bob" />);
+
+      await waitForElement(() => getByTestId('users/bob'));
+    });
   });
 
   describe('useFirestoreCollection', () => {

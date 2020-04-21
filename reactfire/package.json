@@ -1,6 +1,6 @@
 {
   "name": "@iwikal/reactfire",
-  "version": "3.0.0-rc5",
+  "version": "3.0.0-rc6",
   "description": "Firebase library for React",
   "module": "pub/reactfire/esm/index.js",
   "main": "pub/reactfire/cjs/index.js",

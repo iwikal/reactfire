@@ -14,12 +14,12 @@ export function useObservable<T>(
     observableId
   );
 
-  const [resource, setResource] = React.useState(entry.resource);
+  const [, setResource] = React.useState(entry.resource);
 
   React.useEffect(() => {
     const subscription = entry.observable.subscribe(setResource);
     return () => subscription.unsubscribe();
   }, [entry.observable]);
 
-  return resource;
+  return entry.resource;
 }
