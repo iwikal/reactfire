@@ -35,13 +35,11 @@
     "rxjs": "^6.4.0"
   },
   "peerDependencies": {
-    "firebase": "^7.0.0",
+    "firebase": "^7.6.0",
     "react": "0.0.0-experimental-f6b8d31a7"
   },
   "devDependencies": {
-    "@firebase/app": "^0.4.8",
-    "@firebase/app-types": "^0.4.0",
-    "@firebase/testing": "^0.11.4",
+    "@firebase/testing": "^0.19.3",
     "@rollup/plugin-typescript": "^3.0.0",
     "@testing-library/jest-dom": "^4.1.1",
     "@testing-library/react": "^9.3.0",
@@ -50,6 +48,7 @@
     "@typescript-eslint/parser": "^2.26.0",
     "eslint": "^6.8.0",
     "eslint-plugin-react-hooks": "^3.0.0",
+    "firebase": "^7.6.0",
     "firebase-functions-test": "^0.1.6",
     "firebase-tools": "^7.1.0",
     "jest": "^25.2.4",

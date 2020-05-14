@@ -1,5 +1,5 @@
 import { firestore } from 'firebase/app';
-import { fromDocRef, fromCollectionRef } from 'rxfire/firestore';
+import { Observable } from 'rxjs';
 import { skipWhile } from 'rxjs/operators';
 import { useObservable } from '../useObservable';
 import { Resource } from '../resource';
@@ -11,15 +11,17 @@ import { ReactFireOptions } from '../options';
  * @param ref - Reference to the document you want to listen to
  * @param options
  */
-export function useFirestoreDoc(
-  ref: firestore.DocumentReference,
+export function useFirestoreDoc<T = firestore.DocumentData>(
+  ref: firestore.DocumentReference<T>,
   options?: ReactFireOptions
-): Resource<firestore.DocumentSnapshot> {
+): Resource<firestore.DocumentSnapshot<T>> {
   const { skipCache = false } = options || {};
 
   const queryId = 'firestore doc: ' + ref.path;
 
-  const observable = fromDocRef(ref, { includeMetadataChanges: true });
+  const observable = new Observable<firestore.DocumentSnapshot<T>>(subscriber =>
+    ref.onSnapshot({ includeMetadataChanges: skipCache }, subscriber)
+  );
 
   return useObservable(
     skipCache
@@ -35,19 +37,16 @@ export function useFirestoreDoc(
  * @param ref - Reference to the collection you want to listen to
  * @param options
  */
-export function useFirestoreCollection(
-  query: firestore.Query,
+export function useFirestoreCollection<T = firestore.DocumentData>(
+  query: firestore.Query<T>,
   options?: ReactFireOptions
-): Resource<firestore.QuerySnapshot> {
+): Resource<firestore.QuerySnapshot<T>> {
   const { skipCache = false } = options || {};
 
   const queryId = getHashFromFirestoreQuery(query);
 
-  const observable = fromCollectionRef(
-    query,
-    options && {
-      includeMetadataChanges: skipCache
-    }
+  const observable = new Observable<firestore.QuerySnapshot<T>>(subscriber =>
+    query.onSnapshot({ includeMetadataChanges: skipCache }, subscriber)
   );
 
   return useObservable(
