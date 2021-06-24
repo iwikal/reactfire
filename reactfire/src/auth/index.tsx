@@ -3,7 +3,7 @@ import firebase from 'firebase/app';
 import { user } from 'rxfire/auth';
 import { Resource } from '../resource';
 import { useObservable } from '../useObservable';
-import { from } from 'rxjs';
+import { defer } from 'rxjs';
 import { useFirebaseApp } from '../firebaseApp';
 
 /**
@@ -26,7 +26,7 @@ export function useIdTokenResult(
     throw new Error('you must provide a user');
   }
 
-  const idToken$ = from(user.getIdTokenResult(forceRefresh));
+  const idToken$ = defer(() => user.getIdTokenResult(forceRefresh));
 
   return useObservable(idToken$, `${user.uid}-claims`);
 }
