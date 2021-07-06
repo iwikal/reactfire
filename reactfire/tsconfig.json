@@ -1,15 +1,15 @@
 {
   "compilerOptions": {
     "strict": true,
-    "target": "es5",
+    "target": "es6",
     "module": "esnext",
     "removeComments": true,
     "moduleResolution": "node",
     "jsx": "react",
     "baseUrl": "./src",
     "lib": ["es5", "es6", "dom"],
-    "outDir": "pub/reactfire",
     "declaration": true,
+    "declarationDir": "pub",
     "skipLibCheck": true,
     "esModuleInterop": true
   },

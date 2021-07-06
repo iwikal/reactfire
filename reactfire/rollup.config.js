@@ -1,7 +1,7 @@
 import typescript from '@rollup/plugin-typescript';
 
-const config = {
-  input: './src/index.ts',
+export default {
+  input: 'src/index.ts',
   plugins: [typescript()],
   external: [
     'firebase/app',
@@ -12,24 +12,17 @@ const config = {
     'rxfire/storage',
     'rxjs',
     'rxjs/operators'
-  ]
-};
-
-export default [
-  {
-    ...config,
-    output: {
-      dir: './pub/reactfire/cjs',
+  ],
+  output: [
+    {
+      file: 'pub/index.mjs',
+      format: 'esm',
+      name: 'reactfire'
+    },
+    {
+      file: 'pub/index.js',
       format: 'cjs',
       name: 'reactfire'
     }
-  },
-  {
-    ...config,
-    output: {
-      dir: './pub/reactfire/esm',
-      format: 'esm',
-      name: 'reactfire'
-    }
-  }
-];
+  ]
+};
