@@ -78,7 +78,7 @@ describe('ObservableCache', () => {
         const subject = new Subject<number>();
         const entry = cache.getOrInsert('id', subject);
 
-        expect(entry.resource.read).toThrow(Promise);
+        expect(() => entry.resource.read()).toThrow(Promise);
       });
 
       it('returns values', async () => {
@@ -104,7 +104,7 @@ describe('ObservableCache', () => {
         expect(cache.activeObservables.size).toBe(1);
 
         subject.error(new Error('error'));
-        expect(entry.resource.read).toThrowError('error');
+        expect(() => entry.resource.read()).toThrowError('error');
 
         expect(cache.activeObservables.size).toBe(1);
 

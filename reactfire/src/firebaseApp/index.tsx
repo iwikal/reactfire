@@ -24,16 +24,13 @@ export function FirebaseAppProvider(props: FirebaseAppProviderProps) {
 export function useFirebaseApp(): Resource<firebase.app.App> {
   const firebaseApp = React.useContext(FirebaseAppContext);
 
-  return React.useMemo(
-    () => ({
-      read() {
-        if (firebaseApp) return firebaseApp;
+  return React.useMemo(() => {
+    if (firebaseApp) return Resource.resolve(firebaseApp);
 
-        throw new Error(
-          'Cannot call useFirebaseApp unless your component is within a FirebaseAppProvider'
-        );
-      }
-    }),
-    [firebaseApp]
-  );
+    const error = new Error(
+      'Cannot call useFirebaseApp unless your component is within a FirebaseAppProvider'
+    );
+
+    return Resource.reject(error);
+  }, [firebaseApp]);
 }

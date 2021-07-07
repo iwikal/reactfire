@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 import { share, tap, first, finalize } from 'rxjs/operators';
-import { Resource } from '..';
+import { Resource } from '../resource';
 
 function deferUnsubscribe<T>(timeout: number) {
   return (source: Observable<T>) =>
@@ -23,13 +23,8 @@ function resourcify<T>() {
   return (source: Observable<T>) =>
     new Observable<Resource<T>>(subscriber =>
       source.subscribe(
-        value => subscriber.next({ read: () => value }),
-        error =>
-          subscriber.next({
-            read: () => {
-              throw error;
-            }
-          }),
+        value => subscriber.next(Resource.resolve(value)),
+        error => subscriber.next(Resource.reject(error)),
         () => subscriber.complete()
       )
     );
@@ -37,16 +32,9 @@ function resourcify<T>() {
 
 export class CacheEntry<T> {
   readonly observable: Observable<Resource<T>>;
-  readonly promise: Promise<void>;
-  resource: Resource<T>;
+  resource!: Resource<T>;
 
   constructor(observable: Observable<T>, timeout: number, cleanup: () => void) {
-    this.resource = {
-      read: () => {
-        throw this.promise;
-      }
-    };
-
     this.observable = observable.pipe(
       resourcify(),
       finalize(cleanup),
@@ -55,10 +43,14 @@ export class CacheEntry<T> {
       deferUnsubscribe(timeout)
     );
 
-    this.promise = this.observable
-      .pipe(first())
-      .toPromise()
-      .then(resource => void resource.read());
+    const firstResource = Resource.resolve(
+      this.observable
+        .pipe(first())
+        .toPromise()
+        .then(v => v) // Only to make typescript happy
+    );
+
+    if (!this.resource) this.resource = firstResource;
   }
 }
 
