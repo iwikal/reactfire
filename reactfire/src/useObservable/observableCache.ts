@@ -40,7 +40,7 @@ export class CacheEntry<T> {
   readonly promise: Promise<void>;
   resource: Resource<T>;
 
-  constructor(observable: Observable<T>, id: string, cache: ObservableCache) {
+  constructor(observable: Observable<T>, timeout: number, cleanup: () => void) {
     this.resource = {
       read: () => {
         throw this.promise;
@@ -49,10 +49,10 @@ export class CacheEntry<T> {
 
     this.observable = observable.pipe(
       resourcify(),
-      finalize(() => cache.removeObservable(id, this)),
+      finalize(cleanup),
       tap(resource => (this.resource = resource)),
       share(),
-      deferUnsubscribe(cache.timeout)
+      deferUnsubscribe(timeout)
     );
 
     this.promise = this.observable
@@ -71,31 +71,24 @@ export class ObservableCache {
     this.timeout = timeout;
   }
 
-  getObservable(observableId: string) {
-    const observable = this.activeObservables.get(observableId);
-    if (observable === undefined) {
-      throw new Error(`No observable with ID "${observableId}" exists`);
-    }
-    return observable;
-  }
-
-  createDedupedObservable<T>(
-    getObservable: () => Observable<T>,
-    observableId: string
-  ): CacheEntry<T> {
-    let entry = this.activeObservables.get(observableId);
-
-    if (entry === undefined) {
-      entry = new CacheEntry(getObservable(), observableId, this);
-      this.activeObservables.set(observableId, entry);
-    }
-
+  insert<T>(key: string, observable: Observable<T>): CacheEntry<T> {
+    const entry: CacheEntry<T> = new CacheEntry(observable, this.timeout, () =>
+      this.remove(key, entry)
+    );
+    this.activeObservables.set(key, entry);
     return entry;
   }
 
-  removeObservable(observableId: string, instance: CacheEntry<unknown>) {
-    if (this.activeObservables.get(observableId) === instance) {
-      this.activeObservables.delete(observableId);
+  getOrInsert<T>(key: string, observable: Observable<T>): CacheEntry<T> {
+    const entry =
+      this.activeObservables.get(key) || this.insert(key, observable);
+
+    return entry as CacheEntry<T>;
+  }
+
+  remove(key: string, instance: CacheEntry<unknown>) {
+    if (this.activeObservables.get(key) === instance) {
+      this.activeObservables.delete(key);
     }
   }
 }

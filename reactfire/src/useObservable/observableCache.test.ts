@@ -8,20 +8,20 @@ describe('ObservableCache', () => {
     const cache = new ObservableCache();
     expect(cache.activeObservables.size).toBe(0);
 
-    cache.createDedupedObservable(() => new Subject(), 'foo');
+    cache.getOrInsert('foo', new Subject());
     expect(cache.activeObservables.size).toBe(1);
 
-    cache.createDedupedObservable(() => new Subject(), 'foo');
+    cache.getOrInsert('foo', new Subject());
     expect(cache.activeObservables.size).toBe(1);
 
-    cache.createDedupedObservable(() => new Subject(), 'bar');
+    cache.getOrInsert('bar', new Subject());
     expect(cache.activeObservables.size).toBe(2);
   });
 
   describe('CacheEntry', () => {
     it('removes itself after resolving', async () => {
       const cache = new ObservableCache();
-      cache.createDedupedObservable(() => new BehaviorSubject(0), 'id');
+      cache.getOrInsert('id', new BehaviorSubject(0));
 
       expect(cache.activeObservables.size).toBe(1);
 
@@ -34,7 +34,7 @@ describe('ObservableCache', () => {
       const cache = new ObservableCache();
 
       const subject = new Subject();
-      cache.createDedupedObservable(() => subject, 'id');
+      cache.getOrInsert('id', subject);
 
       expect(cache.activeObservables.size).toBe(1);
       jest.runAllTimers();
@@ -49,7 +49,7 @@ describe('ObservableCache', () => {
       const cache = new ObservableCache();
 
       const subject = new Subject();
-      const entry = cache.createDedupedObservable(() => subject, 'id');
+      const entry = cache.getOrInsert('id', subject);
 
       expect(cache.activeObservables.size).toBe(1);
       jest.runAllTimers();
@@ -76,7 +76,7 @@ describe('ObservableCache', () => {
         const cache = new ObservableCache();
 
         const subject = new Subject<number>();
-        const entry = cache.createDedupedObservable(() => subject, 'id');
+        const entry = cache.getOrInsert('id', subject);
 
         expect(entry.resource.read).toThrow(Promise);
       });
@@ -85,7 +85,7 @@ describe('ObservableCache', () => {
         const cache = new ObservableCache();
 
         const subject = new BehaviorSubject('value');
-        const entry = cache.createDedupedObservable(() => subject, 'id');
+        const entry = cache.getOrInsert('id', subject);
 
         expect(entry.resource.read()).toBe('value');
 
@@ -97,7 +97,7 @@ describe('ObservableCache', () => {
         const cache = new ObservableCache();
 
         const subject = new BehaviorSubject('value');
-        const entry = cache.createDedupedObservable(() => subject, 'id');
+        const entry = cache.getOrInsert('id', subject);
 
         expect(entry.resource.read()).toBe('value');
 
@@ -120,13 +120,12 @@ describe('ObservableCache', () => {
       const subject = new BehaviorSubject('value');
       let count = 0;
 
-      const entry = cache.createDedupedObservable(
-        () =>
-          new Observable(subscriber => {
-            count++;
-            return subject.subscribe(subscriber);
-          }),
-        'id'
+      const entry = cache.getOrInsert(
+        'id',
+        new Observable(subscriber => {
+          count++;
+          return subject.subscribe(subscriber);
+        })
       );
 
       entry.observable.subscribe();

@@ -9,10 +9,7 @@ export function useObservable<T>(
   observable: Observable<T>,
   observableId: string
 ): Resource<T> {
-  const entry = observableCache.createDedupedObservable(
-    () => observable,
-    observableId
-  );
+  const entry = observableCache.getOrInsert(observableId, observable);
 
   const [, setResource] = React.useState(entry.resource);
 
